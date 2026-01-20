@@ -22,11 +22,13 @@ let currentEditIdx = ref(null);
 const shouldRemoveSearchArtifacts = ref(false)
 const shouldRemoveStandardCatalogs = ref(false)
 const shouldRemoveMetaResource = ref(false)
+const shouldRemoveCalendarAndNotifications = ref(false)
 
 // Patch status tracking
 const isSearchArtifactsPatched = ref(false)
 const isStandardCatalogsPatched = ref(false)
 const isMetaResourcePatched = ref(false)
+const isCalendarAndNotificationsPatched = ref(false)
 
 // Restore functionality state
 const backupFile = ref(null)
@@ -239,6 +241,60 @@ function removeMeta() {
 }
 
 /**
+ * Remove Calendar and Notification catalogs from Cinemeta.
+ * - Removes catalogs with id 'calendar-videos' (Calendar)
+ * - Removes catalogs with id 'last-videos' (Notifications)
+ * Returns a summary of changes for logging.
+ */
+function removeCalendarAndNotificationCatalogs() {
+    const cinemetaIndex = addons.value.findIndex((addon) => addon && addon.manifest && addon.manifest.name === 'Cinemeta')
+    if (cinemetaIndex === -1) {
+        return {
+            removedCalendar: false,
+            removedNotifications: false,
+        }
+    }
+
+    const manifest = addons.value[cinemetaIndex].manifest || {}
+    const originalCatalogs = Array.isArray(manifest.catalogs) ? manifest.catalogs : []
+
+    const hadCalendar = originalCatalogs.some((c) => c && c.id === 'calendar-videos')
+    const hadNotifications = originalCatalogs.some((c) => c && c.id === 'last-videos')
+
+    const updatedCatalogs = originalCatalogs.filter((c) => !(c && (c.id === 'calendar-videos' || c.id === 'last-videos')))
+
+    addons.value[cinemetaIndex].manifest = {
+        ...manifest,
+        catalogs: updatedCatalogs,
+    }
+
+    return {
+        removedCalendar: hadCalendar,
+        removedNotifications: hadNotifications,
+    }
+}
+
+/**
+ * Detect if Calendar and Notification catalogs have been removed from Cinemeta
+ * Returns true if neither 'calendar-videos' nor 'last-videos' catalogs exist in Cinemeta
+ */
+function detectCalendarAndNotificationsPatched() {
+    const cinemetaIndex = addons.value.findIndex((addon) => addon && addon.manifest && addon.manifest.name === 'Cinemeta')
+    if (cinemetaIndex === -1) {
+        return false // No Cinemeta addon found
+    }
+
+    const manifest = addons.value[cinemetaIndex].manifest || {}
+    const catalogs = Array.isArray(manifest.catalogs) ? manifest.catalogs : []
+
+    const hasCalendar = catalogs.some((c) => c && c.id === 'calendar-videos')
+    const hasNotifications = catalogs.some((c) => c && c.id === 'last-videos')
+
+    // Patch is applied if both calendar and notifications catalogs are missing
+    return !hasCalendar && !hasNotifications
+}
+
+/**
  * Detect if Cinemeta search artifacts have been removed
  * Returns true if the search catalogs and extras are missing (patch applied)
  */
@@ -341,16 +397,19 @@ function detectAppliedPatches() {
         isSearchArtifactsPatched.value = detectSearchArtifactsPatched()
         isStandardCatalogsPatched.value = detectStandardCatalogsPatched()
         isMetaResourcePatched.value = detectMetaResourcePatched()
+        isCalendarAndNotificationsPatched.value = detectCalendarAndNotificationsPatched()
 
         // Update toggles to reflect current state
         shouldRemoveSearchArtifacts.value = isSearchArtifactsPatched.value
         shouldRemoveStandardCatalogs.value = isStandardCatalogsPatched.value
         shouldRemoveMetaResource.value = isMetaResourcePatched.value
+        shouldRemoveCalendarAndNotifications.value = isCalendarAndNotificationsPatched.value
 
         console.log('Patch detection results:', {
             searchArtifacts: isSearchArtifactsPatched.value,
             standardCatalogs: isStandardCatalogsPatched.value,
-            metaResource: isMetaResourcePatched.value
+            metaResource: isMetaResourcePatched.value,
+            calendarAndNotifications: isCalendarAndNotificationsPatched.value
         })
     } catch (e) {
         console.error('Error detecting applied patches:', e)
@@ -419,6 +478,10 @@ function syncUserAddons() {
             const result = removeMeta()
             console.log('Applied removeMeta:', result)
         }
+        if (shouldRemoveCalendarAndNotifications.value) {
+            const result = removeCalendarAndNotificationCatalogs()
+            console.log('Applied removeCalendarAndNotificationCatalogs:', result)
+        }
     } catch (e) {
         console.error('Error applying selected manifest manipulations:', e)
     }
@@ -446,6 +509,7 @@ function syncUserAddons() {
                 isSearchArtifactsPatched.value = shouldRemoveSearchArtifacts.value
                 isStandardCatalogsPatched.value = shouldRemoveStandardCatalogs.value
                 isMetaResourcePatched.value = shouldRemoveMetaResource.value
+                isCalendarAndNotificationsPatched.value = shouldRemoveCalendarAndNotifications.value
                 
                 // Run detection to verify patches were applied correctly (extra validation)
                 detectAppliedPatches()
@@ -981,6 +1045,7 @@ function resetCinemeta() {
             shouldRemoveSearchArtifacts.value = false;
             shouldRemoveStandardCatalogs.value = false;
             shouldRemoveMetaResource.value = false;
+            shouldRemoveCalendarAndNotifications.value = false;
 
             // Auto-sync the updated collection to Stremio (now with toggles disabled)
             return syncUserAddons();
@@ -990,6 +1055,7 @@ function resetCinemeta() {
             isSearchArtifactsPatched.value = false;
             isStandardCatalogsPatched.value = false;
             isMetaResourcePatched.value = false;
+            isCalendarAndNotificationsPatched.value = false;
             
             console.log('Cinemeta reset and sync completed successfully');
         })
@@ -1089,6 +1155,20 @@ function resetCinemeta() {
                 </div>
                 <label class="switch">
                   <input type="checkbox" v-model="shouldRemoveMetaResource" :disabled="isLocked || isMetaResourcePatched" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="option-row">
+                <div class="option-text">
+                  <div class="option-title">
+                    Remove Cinemeta Calendar & Notifications
+                    <span v-if="isCalendarAndNotificationsPatched" class="patch-applied-label">Patch applied</span>
+                  </div>
+                  <div class="option-sub">Removes calendar and new episode notification functionality.</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" v-model="shouldRemoveCalendarAndNotifications" :disabled="isLocked || isCalendarAndNotificationsPatched" />
                   <span class="slider"></span>
                 </label>
               </div>
