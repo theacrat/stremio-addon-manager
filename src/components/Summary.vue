@@ -2,10 +2,14 @@
   <section id="features">
     <h2>Note</h2>
     <p>
-      This is an instance built from <a href="https://github.com/Viren070/stremio-addon-manager" target="_blank">my fork</a> of <a href="https://github.com/redd-ravenn/stremio-addon-manager" target="_blank">redd-raven's fork</a> of <a href="https://github.com/pancake3000/stremio-addon-manager" target="_blank">pancake3000's addon manager</a>.<br>
+      This is an instance built from <a href="https://github.com/theacrat/stremio-addon-manager" target="_blank">my fork</a> of <a href="https://github.com/Viren070/stremio-addon-manager" target="_blank">Viren070's fork</a> of <a href="https://github.com/redd-ravenn/stremio-addon-manager" target="_blank">redd-raven's fork</a> of <a href="https://github.com/pancake3000/stremio-addon-manager" target="_blank">pancake3000's addon manager</a>.<br>
       This instance allows you to rename or delete catalogues.<br><br>
       Full credit goes to pancake3000 for the original addon manager and redd-ravenn for the functionality to rename or delete catalogues.<br>
-      I have only hosted redd-raven's fork and not added any additional functionality.
+    </p>
+
+    <h2>I uninstalled Cinemeta, how do I get it back?</h2>
+    <p>
+      You can re-install Cinemeta <a href="https://v3-cinemeta.strem.io/" target="_blank">here</a> for the app, or <a href="https://web.stremio.com/#/addons?addon=https%3A%2F%2Fv3-cinemeta.strem.io%2Fmanifest.json">here</a> for the web client.
     </p>
     
     <h2>Why?</h2>

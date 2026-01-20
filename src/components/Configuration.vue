@@ -146,7 +146,7 @@ function saveManifestEdit(updatedManifest) {
                     <template #item="{ element, index }">
                         <AddonItem :name="element.manifest.name" :idx="index" :manifestURL="element.transportUrl"
                             :logoURL="element.manifest.logo"
-                            :isDeletable="!getNestedObjectProperty(element, 'flags.protected', false)"
+                            :isDeletable
                             :isConfigurable="getNestedObjectProperty(element, 'manifest.behaviorHints.configurable', false)"
                             @delete-addon="removeAddon"
                             @edit-manifest="openEditModal" />
