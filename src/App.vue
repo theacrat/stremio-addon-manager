@@ -14,7 +14,7 @@ import Footer from './components/Footer.vue'
     <DarkModeToggle />
     <Header addonName="Unprotected Stremio Addon Manager"
       addonSummary="Effortlessly manage the order of your Stremio addons without re-installing."
-      addonTagline="Including the default Cinemeta catalogs." addonLogo="logo.png" />
+      addonTagline="Including the default Cinemeta catalogs." />
   </header>
   <main>
     <Summary />
